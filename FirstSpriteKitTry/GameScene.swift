@@ -246,7 +246,7 @@ class GameScene: SKScene {
                                     
                                     bird2.physicsBody?.applyImpulse(impulse) // impulse değerini veriyorum.
                                     
-                                    bird2.physicsBody?.affectedByGravity = true // kuşa yer çekimi uygulansın diyorum. 
+                                    bird2.physicsBody?.affectedByGravity = true // kuşa yer çekimi uygulansın diyorum.
                                     
                                     gameStarted = true
 
@@ -263,7 +263,18 @@ class GameScene: SKScene {
     }
     
     
-    override func update(_ currentTime: TimeInterval) {
+    override func update(_ currentTime: TimeInterval) { // devamlı çalışan ve her render yapıldığında çağrılan bir fonksiyon. Sürekli bir şeyleri kontrol edeceksek bu fonk. altınd yapabiliriz.
         // Called before each frame is rendered
+        
+        if let birdPhysicBody = self.bird2.physicsBody {
+            
+            if birdPhysicBody.velocity.dx <= 0.1 && birdPhysicBody.velocity.dy <= 0.1 && birdPhysicBody.angularVelocity <= 0.1 && gameStarted == true {
+                
+                bird2.physicsBody?.affectedByGravity = false
+                bird2.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
+                bird2.physicsBody?.angularVelocity = 0
+                
+            }
+        }
     }
 }
