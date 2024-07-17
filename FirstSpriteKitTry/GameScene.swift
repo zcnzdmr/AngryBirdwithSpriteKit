@@ -19,6 +19,9 @@ class GameScene: SKScene {
     var box3 = SKSpriteNode()
     var box4 = SKSpriteNode()
     var box5 = SKSpriteNode()
+    
+    var gameStarted = false
+    var originalPosition : CGPoint?
 
     
     override func didMove(to view: SKView) {
@@ -52,7 +55,9 @@ class GameScene: SKScene {
         
         bird2.physicsBody?.isDynamic = true // fiziksel dinamiklerden etkilenecek mi yi true yaptık.
         
-        bird2.physicsBody?.mass = 0.3 // kuşumuza fiziksel vücuduna bir kütle veriyoruz bu bir kg.
+        bird2.physicsBody?.mass = 0.15 // kuşumuza fiziksel vücuduna bir kütle veriyoruz bu bir kg.
+        
+        originalPosition = bird2.position
 
         
         self.addChild(bird2) // en son node'umuzu ekliyoruz ekranımıza.
@@ -81,7 +86,7 @@ class GameScene: SKScene {
         box1.physicsBody = SKPhysicsBody(rectangleOf: sizeOfBox)
         box1.physicsBody?.affectedByGravity = true
         box1.physicsBody?.isDynamic = true
-        box1.physicsBody?.mass = 0.3
+        box1.physicsBody?.mass = 0.2
         box1.physicsBody?.allowsRotation = true // kuş çarptığında sağa sola dönsün müyü true yaptık.
         
         self.addChild(box1)
@@ -94,7 +99,7 @@ class GameScene: SKScene {
         box2.physicsBody = SKPhysicsBody(rectangleOf: sizeOfBox)
         box2.physicsBody?.affectedByGravity = true
         box2.physicsBody?.isDynamic = true
-        box2.physicsBody?.mass = 0.3
+        box2.physicsBody?.mass = 0.2
         
         self.addChild(box2)
         
@@ -106,7 +111,7 @@ class GameScene: SKScene {
         box3.physicsBody = SKPhysicsBody(rectangleOf: sizeOfBox)
         box3.physicsBody?.affectedByGravity = true
         box3.physicsBody?.isDynamic = true
-        box3.physicsBody?.mass = 0.3
+        box3.physicsBody?.mass = 0.2
         self.addChild(box3)
         
         
@@ -118,7 +123,7 @@ class GameScene: SKScene {
         box4.physicsBody = SKPhysicsBody(rectangleOf: sizeOfBox)
         box4.physicsBody?.affectedByGravity = true
         box4.physicsBody?.isDynamic = true
-        box4.physicsBody?.mass = 0.3
+        box4.physicsBody?.mass = 0.2
         self.addChild(box4)
 
         
@@ -130,7 +135,7 @@ class GameScene: SKScene {
         box5.physicsBody = SKPhysicsBody(rectangleOf: sizeOfBox)
         box5.physicsBody?.affectedByGravity = true
         box5.physicsBody?.isDynamic = true
-        box5.physicsBody?.mass = 0.3
+        box5.physicsBody?.mass = 0.2
         self.addChild(box5)
         
         
@@ -158,16 +163,99 @@ class GameScene: SKScene {
   
     }
     
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) { // adından da anlaşılacağı üzere ekrana dokunmanın başladığı yer. İlk dokunma başladığını ne olacağını buraya kodluyoruz.
         
+//        bird2.physicsBody?.applyImpulse(CGVector(dx: 50, dy: 100)) // bu impulse özelliği dokundukça girilen dx ve dy yönünde hareket sağlayan kod parçası biz + yönlü olduğu için ekrana dokundukça bu yönde yükseltir yani uçurur.
+        
+//        bird2.physicsBody?.affectedByGravity = true // bu kodu yukarda false yaptık ki uygulamayı ilk açtığımızda kuş yer çekiminden dolayı düşmesin. biz ekrana dokunmaya başladığımız anda tekrar true oluyor.
+        
+        
+        if gameStarted == false { // gameStarted boolean'ı oluşturmamızın nedeni oyun başladıktan sonra kuşa müdahele edemeyecek olmam.
+            
+            if let touch = touches.first { // burda ki touches'ı yukarda kendisi veriyor ben ilk dokunmayı touch değ.'e aktarıyorum.
+                
+                let touchLocation = touch.location(in: self) // ilk touch'ın yani ekrana dokunmanın lokasyonunu değ.'e aktarıyorum.
+                let touchNodes = nodes(at: touchLocation) // dokunulan lokasyonda ki node'u yani görsel nesneyi touchNodes diye bir node dizisine aktarıyorum.
+                
+                if touchNodes.isEmpty == false { // eğer bu node'lar dizisi boş değilse diyorum.
+                        
+                        for node in touchNodes { // node'ları dokunulan pozisyonda ki node olabilecek tüm nesneleri for loop'a sokuyorum
+                            
+                            if let sprite = node as? SKSpriteNode { // ve her birini SKSpriteNode olarak cast ediyorum.
+                                
+                                if node == self.bird2 { // burda en sonunda benim de bir SKSpriteNode olan bird'ümle kıyaslıyorum eğer o ise şunu yap diyeceğim.
+                                    bird2.position = touchLocation
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {  // bu kısımı dokunmaların devam ettiği ve dokunarak hareket ettirilen kısım.
        
+        if gameStarted == false { // gameStarted boolean'ı oluşturmamızın nedeni oyun başladıktan sonra kuşa müdahele edemeyecek olmam.
+            
+            if let touch = touches.first { // burda ki touches'ı yukarda kendisi veriyor ben ilk dokunmayı touch değ.'e aktarıyorum.
+                
+                let touchLocation = touch.location(in: self) // ilk touch'ın yani ekrana dokunmanın lokasyonunu değ.'e aktarıyorum.
+                let touchNodes = nodes(at: touchLocation) // dokunulan lokasyonda ki node'u yani görsel nesneyi touchNodes diye bir node dizisine aktarıyorum.
+                
+                if touchNodes.isEmpty == false { // eğer bu node'lar dizisi boş değilse diyorum.
+                        
+                        for node in touchNodes { // node'ları dokunulan pozisyonda ki node olabilecek tüm nesneleri for loop'a sokuyorum
+                            
+                            if let sprite = node as? SKSpriteNode { // ve her birini SKSpriteNode olarak cast ediyorum.
+                                
+                                if node == self.bird2 { // burda en sonunda benim de bir SKSpriteNode olan bird'ümle kıyaslıyorum eğer o ise şunu yap diyeceğim.
+                                    bird2.position = touchLocation
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) { // bu kısım dokunma bittikten sonra yapılacakların kodlandığı kısım.
         
+        if gameStarted == false {
+            
+            if let touch = touches.first {
+                
+                let touchLocation = touch.location(in: self)
+                
+                let touchNodes = nodes(at: touchLocation)
+                
+                if touchNodes.isEmpty == false {
+                        
+                        for node in touchNodes {
+                            
+                            if let sprite = node as? SKSpriteNode {
+                                
+                                if node == self.bird2 {
+                                    
+                                    let dx = touchLocation.x - originalPosition!.x // dokunulan lokasyonun x ile kuşun bulunduğu orjinal lokasyonun x arasında ki farkı alıyorum ki kuşu geriye çekeceğim için fark ne kadar büyük olursa o kadar impulse uygulasın.
+                                    
+                                    let dy = touchLocation.x - originalPosition!.y // aynı şekilde y'lerin farkını alıyorum bunları apply impulse kodunun içine yazacağım.
+                                    
+                                    let impulse = CGVector(dx: -dx, dy: -dy) // burda önüne eksi (-) koymamın sebebi uygulanan kuvvetin aksi yönünde bir impulse uygulamasını istiyorum.
+                                    
+                                    bird2.physicsBody?.applyImpulse(impulse) // impulse değerini veriyorum.
+                                    
+                                    bird2.physicsBody?.affectedByGravity = true // kuşa yer çekimi uygulansın diyorum. 
+                                    
+                                    gameStarted = true
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
