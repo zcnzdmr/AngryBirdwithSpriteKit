@@ -8,7 +8,7 @@
 import SpriteKit
 import GameplayKit
 
-class GameScene: SKScene {
+class GameScene: SKScene, SKPhysicsContactDelegate {
     
     
     var bird2 = SKSpriteNode()
@@ -22,12 +22,29 @@ class GameScene: SKScene {
     
     var gameStarted = false
     var originalPosition : CGPoint?
+    
+    var score : Int = 0
+    var scoreLabel = SKLabelNode()
+    
+    
+     // MARK: Enum oluşturma kısmı
+    enum ColliderType : UInt32 { // Bunu oluşturma sebebimiz kuşun ve kutuların çarpışmalarını oyunun algılamasını sağlamak. Bizden UInt32 istiyordu bizde herbiri için enum case oluşturduk.
+        
+        case Bird = 1
+        case Box = 2
+        case Background = 4
+        case Tree = 8
+        
+    }
 
     
     override func didMove(to view: SKView) {
         
         self.physicsBody = SKPhysicsBody(edgeLoopFrom: frame) // bu bizim ekran sınırlarımız içerisinde total bir fiziksel dünya bir fizik body oluşturur. biz ekran çerçevesi içerisinde bir dünya yarattık örneğin kuş düşünce bu çerçevenin içinde kalır.
         self.scene?.scaleMode = .aspectFit
+        self.physicsWorld.contactDelegate = self // Nesneler yani Node'lar arasında ki kontaktları algılamamızı sağlayacak. Bunun bir fonk. olan didBegin ( contact.. ) fonk'unun altına algılanan kontaktlarla ilgili kodları yazacağız.
+        
+        
         
         // MARK: NESNELERİ(NOD'LARI ve TEXTURE'LARI) KOD İLE TANIMLAMA KISMI
         
@@ -58,6 +75,14 @@ class GameScene: SKScene {
         bird2.physicsBody?.mass = 0.15 // kuşumuza fiziksel vücuduna bir kütle veriyoruz bu bir kg.
         
         originalPosition = bird2.position
+        
+        
+        bird2.physicsBody?.contactTestBitMask = ColliderType.Bird.rawValue // Tüm bitMaskleri yazdık ve bu bize kuşa verdiğimiz physicsBody ile diğer nesnelerin bodylerini çarpışmalarını veya kontakt kurmalarını algılamasını sağlamak.
+        
+        bird2.physicsBody?.collisionBitMask = ColliderType.Box.rawValue
+        
+        bird2.physicsBody?.categoryBitMask = ColliderType.Bird.rawValue
+
 
         
         self.addChild(bird2) // en son node'umuzu ekliyoruz ekranımıza.
@@ -89,6 +114,9 @@ class GameScene: SKScene {
         box1.physicsBody?.mass = 0.2
         box1.physicsBody?.allowsRotation = true // kuş çarptığında sağa sola dönsün müyü true yaptık.
         
+        box1.physicsBody?.collisionBitMask = ColliderType.Bird.rawValue
+
+        
         self.addChild(box1)
         
         box2 = SKSpriteNode(texture: boxTexture)
@@ -101,6 +129,9 @@ class GameScene: SKScene {
         box2.physicsBody?.isDynamic = true
         box2.physicsBody?.mass = 0.2
         
+        box2.physicsBody?.collisionBitMask = ColliderType.Bird.rawValue
+
+        
         self.addChild(box2)
         
         box3 = SKSpriteNode(texture: boxTexture)
@@ -112,6 +143,10 @@ class GameScene: SKScene {
         box3.physicsBody?.affectedByGravity = true
         box3.physicsBody?.isDynamic = true
         box3.physicsBody?.mass = 0.2
+        
+        box3.physicsBody?.collisionBitMask = ColliderType.Bird.rawValue
+
+
         self.addChild(box3)
         
         
@@ -124,6 +159,10 @@ class GameScene: SKScene {
         box4.physicsBody?.affectedByGravity = true
         box4.physicsBody?.isDynamic = true
         box4.physicsBody?.mass = 0.2
+        
+        box4.physicsBody?.collisionBitMask = ColliderType.Bird.rawValue
+
+
         self.addChild(box4)
 
         
@@ -136,6 +175,10 @@ class GameScene: SKScene {
         box5.physicsBody?.affectedByGravity = true
         box5.physicsBody?.isDynamic = true
         box5.physicsBody?.mass = 0.2
+        
+        box5.physicsBody?.collisionBitMask = ColliderType.Bird.rawValue
+
+
         self.addChild(box5)
         
         
@@ -147,6 +190,15 @@ class GameScene: SKScene {
         tree.size = CGSize(width: self.frame.width / 4, height: self.frame.height / 2.6)
         tree.zPosition = 0
         self.addChild(tree)
+        
+        // MARK: SCORE ayarlama kısmı
+        
+        scoreLabel.fontName = "Helvetica"
+        scoreLabel.fontSize = 60
+        scoreLabel.text = "0"
+        scoreLabel.position = CGPoint(x: 0, y: self.frame.height / 4)
+        scoreLabel.zPosition = 2
+        self.addChild(scoreLabel)
 
     }
     
@@ -183,7 +235,7 @@ class GameScene: SKScene {
                             
                             if let sprite = node as? SKSpriteNode { // ve her birini SKSpriteNode olarak cast ediyorum.
                                 
-                                if node == self.bird2 { // burda en sonunda benim de bir SKSpriteNode olan bird'ümle kıyaslıyorum eğer o ise şunu yap diyeceğim.
+                                if sprite == self.bird2 { // burda en sonunda benim de bir SKSpriteNode olan bird'ümle kıyaslıyorum eğer o ise şunu yap diyeceğim.
                                     bird2.position = touchLocation
 
                             }
@@ -209,7 +261,7 @@ class GameScene: SKScene {
                             
                             if let sprite = node as? SKSpriteNode { // ve her birini SKSpriteNode olarak cast ediyorum.
                                 
-                                if node == self.bird2 { // burda en sonunda benim de bir SKSpriteNode olan bird'ümle kıyaslıyorum eğer o ise şunu yap diyeceğim.
+                                if sprite == self.bird2 { // burda en sonunda benim de bir SKSpriteNode olan bird'ümle kıyaslıyorum eğer o ise şunu yap diyeceğim.
                                     bird2.position = touchLocation
 
                             }
@@ -236,17 +288,20 @@ class GameScene: SKScene {
                             
                             if let sprite = node as? SKSpriteNode {
                                 
-                                if node == self.bird2 {
+                                if sprite == self.bird2 {
+                                    
+                                    
+                                    bird2.physicsBody?.affectedByGravity = true
                                     
                                     let dx = touchLocation.x - originalPosition!.x // dokunulan lokasyonun x ile kuşun bulunduğu orjinal lokasyonun x arasında ki farkı alıyorum ki kuşu geriye çekeceğim için fark ne kadar büyük olursa o kadar impulse uygulasın.
                                     
-                                    let dy = touchLocation.x - originalPosition!.y // aynı şekilde y'lerin farkını alıyorum bunları apply impulse kodunun içine yazacağım.
+//                                    let dy = touchLocation.x - originalPosition!.y // aynı şekilde y'lerin farkını alıyorum bunları apply impulse kodunun içine yazacağım.
                                     
-                                    let impulse = CGVector(dx: -dx, dy: -dy) // burda önüne eksi (-) koymamın sebebi uygulanan kuvvetin aksi yönünde bir impulse uygulamasını istiyorum.
+                                    let impulse = CGVector(dx: -dx, dy: 100) // burda önüne eksi (-) koymamın sebebi uygulanan kuvvetin aksi yönünde bir impulse uygulamasını istiyorum.
                                     
                                     bird2.physicsBody?.applyImpulse(impulse) // impulse değerini veriyorum.
                                     
-                                    bird2.physicsBody?.affectedByGravity = true // kuşa yer çekimi uygulansın diyorum.
+                                     // kuşa yer çekimi uygulansın diyorum.
                                     
                                     gameStarted = true
 
@@ -268,13 +323,29 @@ class GameScene: SKScene {
         
         if let birdPhysicBody = self.bird2.physicsBody {
             
-            if birdPhysicBody.velocity.dx <= 0.1 && birdPhysicBody.velocity.dy <= 0.1 && birdPhysicBody.angularVelocity <= 0.1 && gameStarted == true {
+            if birdPhysicBody.velocity.dx <= 0.2 && birdPhysicBody.velocity.dy <= 0.2 && birdPhysicBody.angularVelocity <= 0.2 && gameStarted == true {
                 
                 bird2.physicsBody?.affectedByGravity = false
                 bird2.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
                 bird2.physicsBody?.angularVelocity = 0
+                bird2.zPosition = 1
+                bird2.position = originalPosition!
+                
+                score = 0
+                scoreLabel.text = String(score)
+                gameStarted = false
                 
             }
+        }
+    }
+    
+    func didBegin(_ contact: SKPhysicsContact) {
+        
+        if contact.bodyA.collisionBitMask == ColliderType.Bird.rawValue || contact.bodyB.collisionBitMask == ColliderType.Bird.rawValue {
+            
+            score += 1
+            scoreLabel.text = String(score)
+            
         }
     }
 }
