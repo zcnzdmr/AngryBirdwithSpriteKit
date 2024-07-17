@@ -26,8 +26,12 @@ class GameViewController: UIViewController {
             
             view.ignoresSiblingOrder = true
             
-            view.showsFPS = true
-            view.showsNodeCount = true
+            // vire.showFPs ve view.showsNodeCount ekranın altında çıktığı için bunları siliyoruz.
+            
+            /*view.showsFPS = true
+            view.showsNodeCount = true*/
+            
+            view.showsPhysics = true // bunu yazmamızın nedeni bizim görsel nesnelere gerçek bir body vermek böylece onlar çarptıklarında vs. birbirini algılayabilecekler. 
         }
     }
 
